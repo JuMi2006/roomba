@@ -4,6 +4,7 @@ import serial
 import time
 import sys
 import logging
+import math
 from struct import *
 logger = logging.getLogger('Roomba')
 
@@ -12,28 +13,20 @@ cmd_dict=dict(
     spot = 134,                 #change2passive
     clean = 135,                #change2passive
     max = 136,                  #change2passive
-    drive = 137,               #add 4 databytes
     stop = [137,0,0,0,0],
-    forward = [137,0,100,128,0], #http://fantastickobe.blogspot.de/2008/03/lets-play-with-irobot-create-2.html
-    backward = [137,255,156,128,0], #http://www.irobot.com/filelibrary/pdfs/hrd/create/Create%20Open%20Interface_v2.pdf
-    spin_left = [137,0,0,255,255],
-    spin_right = [137,0,0,0,1],
-    motors = 138,               #add 1 databyte
-    leds = 139,                 #add 3 databytes
-    song = 140,                 #add 2n + 2 databytes
-    play = 141,                 #add 1 databyte
+    forward = [137,0,100,128,0],
+    backward = [137,255,156,128,0], 
+    spin_left = [137,0,100,255,255],
+    spin_right = [137,0,100,0,1],
     dock = 143,                 #change2passive
-    wait = 155,                 #add 1 databyte
 )
 
+#support later
+#    motors = 138,               #add 1 databyte
+#    leds = 139,                 #add 3 databytes
+#    song = 140,                 #add 2n + 2 databytes
+#    play = 141,                 #add 1 databyte
 
-def main():
-    try:
-        tty = '/dev/rfcomm1'
-        baudrate = 57600
-        sci=roomba(tty,baudrate)    
-    except:
-        logger.error("Fehler: {0}".format(e))
 
 class Roomba(object):
     _items = []
@@ -42,29 +35,11 @@ class Roomba(object):
         self._sh = smarthome
         self.tty = tty
         self.baudrate = baudrate
-        self.ser = serial.Serial(tty, baudrate=baudrate, timeout=5)
+        self.ser = serial.Serial(self.tty, baudrate=self.baudrate, timeout=2)
         self.is_connected = 'False'
         self._cycle = int(cycle)
         if self._cycle > 0:
             self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)      
-        #self.ser.open()
-        #self.get_sensors()
-        
-        #self.connect()
-        #self.ser.open()
-        #self.send(128)  #start
-        #self.send(130)  #command
-        #self.is_connected = 'True'
-        #self.send(131)  #safe
-        #self.send(132)  #full
-        #self.send(135)
-        #self.send([137,255,56,1,244])  #testfahrt
-        #time.sleep(2)
-        #self.send([137,0,0,0,0])
-        #WORKS
-        #self.ser.write(b"\x80") # 128: start command
-        #self.ser.write(b"\x84") # 130: control command
-        #self.ser.write(b"\x87") # 135: clean command
     
     def run(self):
         pass
@@ -77,10 +52,12 @@ class Roomba(object):
                 logger.error("Roomba: (Re)connect failed in send")
         if self.is_connected == 'True':
             if type(raw) is list:
-                print ("Send {0}".format(raw))
+                #print ("Send {0}".format(raw))
+                logger.debug("Roomba: Send:{0}".format(raw))
                 self.ser.write(bytearray(raw))
             else:
-                print ("Send [{0}]".format(raw))
+                #print ("Send [{0}]".format(raw))
+                logger.debug("Roomba: Send:{0}".format([raw]))
                 self.ser.write(bytearray([raw]))
 
     def connect(self):
@@ -89,13 +66,15 @@ class Roomba(object):
             self.ser.open()
             logger.debug("Roomba: Connected")
             self.is_connected = 'True'
-            self.send(128)  #start
+            #self.send(128)  #start
+            time.sleep(0.2)
             self.send(130)  #command
+            time.sleep(0.2)
         except:
             logger.error("Roomba: Function connect failed")
+            self.is_connected = 'False'
     
     def disconnect(self):
-        self.send(128)
         self.ser.close()
         self.is_connected = 'False'
         logger.debug("Roomba: Disconnected")
@@ -113,9 +92,14 @@ class Roomba(object):
             return self.update_item      
         if 'roomba_drive' in item.conf:
             drive_string = item.conf['roomba_drive']
-            logger.debug("Roomba: {0} will drive {1}".format(item, drive_string))
+            logger.debug("Roomba: {0} will drive \'{1}\'".format(item, drive_string))
             self._items.append(item)
-            return self.update_item		
+            return self.update_item
+        if 'roomba_raw' in item.conf:
+            raw_list = item.conf['roomba_raw']
+            logger.debug("Roomba: {0} send raw \'{1}\'".format(item, raw_list))
+            self._items.append(item)
+            return self.update_item	
             
     def update_item(self, item, caller=None, source=None, dest=None):
         if caller != 'roomba':
@@ -132,34 +116,34 @@ class Roomba(object):
                     self.drive(drive_string)
                 else:
                     pass
+                self.disconnect()
        
     def drive(self,cmd_string):
         full_raw_cmd = []
-        for i in cmd_string:
-            try:
-                wait = float(i)
-                wait_raw = int(wait*10) #1/10 second in range 0-255
-                full_raw_cmd.append([cmd_dict['wait'],wait_raw])
-            except:
-                full_raw_cmd.append(cmd_dict[i])
-        print (full_raw_cmd)
-        raw_cmd = []
-        for j in full_raw_cmd:
-            if type(j) is list:
-                for k in j:
-                    raw_cmd.append(k)
-            else:
-                raw_cmd.append(j)
-        print (raw_cmd)
-        #self.send(raw_cmd)
-  
+        if type(cmd_string) is list:
+            for i in cmd_string:
+                try:
+                    wait = float(i)
+                    time.sleep(wait)
+                    #print ('SLEEP {0}'.format(wait))
+                except:
+                    self.send(cmd_dict[i])
+                    #print (cmd_dict[i])
+        else:
+            #print (cmd_dict[cmd_string])
+            self.send(cmd_dict[cmd_string])
+        self.disconnect()
+        
+    def raw(self,raw_cmd):
+        pass
+        
     def get_sensors(self):
         self.send([142,0])
         answer = self.ser.read(26)
-        print (len(answer))
         if len(answer) == 26:
             answer = list(answer)
-            print (answer)
+            #print (answer)
+            
             #create sensor_dict
             sensor_dict = {}
             sensor_dict = dict()
@@ -183,8 +167,8 @@ class Roomba(object):
             _charging_state = self.DecodeUnsignedByte(answer[16]) #charging state
             sensor_dict['charging_state']=_charging_state
             
-            #_angle = self.Angle(answer[15], answer[14], 'degrees') #angle
-            #sensor_dict['angle']=_angle
+            _angle = self.Angle(answer[15], answer[14], 'degrees') #angle
+            sensor_dict['angle']=_angle
             
             _distance = self.DecodeShort(answer[13],answer[12]) #distance
             sensor_dict['distance']=_distance
@@ -277,7 +261,6 @@ class Roomba(object):
         if unit not in (None, 'radians', 'degrees'):
             pass
         angle = self.DecodeShort(low, high)
-        angle = int(angle[0])
         if unit == 'radians':
             angle = (2 * angle) / 258
             #print ("{0} radians".format(angle))
@@ -307,10 +290,3 @@ class Roomba(object):
         byte = byte[0]
         return (byte & 1, byte & 2, byte & 3, byte & 4, byte & 5)
         #returns bump-right,bump-left,wheel-drop-right,wheel-drop-left,wheel-drop-caster
-
-        
-class roomba_cmd():
-    pass
-
-if __name__ == "__main__":
-    sys.exit(main()) 
