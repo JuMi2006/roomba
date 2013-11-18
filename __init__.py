@@ -1,4 +1,4 @@
-#!/usr/bin/python
+﻿#!/usr/bin/python
 
 import serial
 import time
@@ -39,8 +39,8 @@ def main():
 class Roomba(object):
     _items = []
     
-    def __init__(self,smarthome,tty,baudrate):
-        self._cycle = 10
+    def __init__(self,smarthome,tty,baudrate,cycle):
+        self._cycle = cycle
         self._sh = smarthome
         self.tty = tty
         self.baudrate = baudrate
@@ -75,29 +75,37 @@ class Roomba(object):
         self.send(128)
         self.ser.close()
         self._is_connected = 'False'
-
+    
     def parse_item(self, item):
         if 'roomba_cmd' in item.conf:
-            cmd = item.conf['roomba_cmd']
-            logger.debug("Roomba: {0} will send cmd \'{1}\'".format(item, cmd))
+            cmd_string = item.conf['roomba_cmd']
+            logger.debug("Roomba: {0} will send cmd \'{1}\'".format(item, cmd_string))
             self._items.append(item)
             return self.update_item
-        if 'roomba_get' in item.conf:
+        elif 'roomba_get' in item.conf:
+            sensor_string = item.conf['roomba_get']
+            logger.debug("Roomba: {0} will get {1}".format(item, sensor_string))
             self._items.append(item)
-            self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)
-        
+            #self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)
+        elif 'roomba_drive' in item.conf:
+            drive_string = item.conf['roomba_drive']
+            logger.debug("Roomba: {0} will drive {1}".format(item, drive_string))
+            self._items.append(item)
+            return self.update_item		
+            
     def update_item(self, item, caller=None, source=None, dest=None):
         if caller != 'roomba':
-            logger.debug("Roomba called by {0} and will send cmd \'{1}\'".format(item, item.conf['roomba_cmd']))
             if item():
-                cmd_string = item.conf['roomba_cmd']
-                logger.debug("Roomba: item = true")
-                raw = self.string2cmd(cmd_string, item)
-                if cmd_string in cmd_dict:
-                    self.send(raw)
-                elif 'scene' in cmd_string:
-                    logger.debug("Roomba: {0} will drive scene {1}".format(cmd_string, item))
-                    self.build_scene(cmd_string)
+                if 'roomba_cmd' in item.conf:	
+                    cmd_string = item.conf['roomba_cmd']
+                    logger.debug("Roomba: item = true")
+                    raw = self.string2cmd(cmd_string, item)
+                    if cmd_string in cmd_dict:
+                        self.send(raw)
+                if 'roomba_drive' in item.conf:
+                    drive_string = item.conf['roomba_drive']
+                    logger.debug("Roomba: item = true")
+                    self.drive(drive_string)
                 else:
                     pass
     
@@ -108,8 +116,18 @@ class Roomba(object):
         else: 
             return
     
-    def build_scene(self,cmd_string):
-        pass
+    def drive(self,cmd_string):
+        print (len(cmd_string))
+        full_raw_cmd = []
+        for i in cmd_string:
+            print (i)
+            try:
+                wait = float(i)
+                print ("wait {0}".format(wait))
+            except:
+                full_raw_cmd.append(cmd_dict[i])
+        print (full_raw_cmd)
+            
         
     def send(self, raw):
         #Send a string of bytes to the robot
