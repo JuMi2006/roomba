@@ -39,7 +39,7 @@ class Roomba(object):
     _items = []
     
     def __init__(self,smarthome,tty,baudrate,cycle):
-        self._cycle = 10
+        self._cycle = cycle
         self._sh = smarthome
         self.tty = tty
         self.baudrate = baudrate
@@ -108,7 +108,8 @@ class Roomba(object):
             sensor_string = item.conf['roomba_get']
             logger.debug("Roomba: {0} will get {1}".format(item, sensor_string))
             self._items.append(item)
-            self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)
+            if self._cycle > 0:
+                self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)
         elif 'roomba_drive' in item.conf:
             drive_string = item.conf['roomba_drive']
             logger.debug("Roomba: {0} will drive {1}".format(item, drive_string))
