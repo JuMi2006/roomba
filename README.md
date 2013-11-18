@@ -8,7 +8,7 @@ plugin.conf
      class_path = plugins.roomba
      tty = /dev/rfcomm1
      baudrate = 57600
-	   cycle = 0 #0=deactivate reading sensors
+     cycle = 0 #0=deactivate reading sensors
 </pre>
 
 
