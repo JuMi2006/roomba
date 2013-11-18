@@ -39,14 +39,16 @@ class Roomba(object):
     _items = []
     
     def __init__(self,smarthome,tty,baudrate,cycle):
-        self._cycle = cycle
         self._sh = smarthome
         self.tty = tty
         self.baudrate = baudrate
         self.ser = serial.Serial(tty, baudrate=baudrate, timeout=5)
         self.is_connected = 'False'
+        self._cycle = int(cycle)
+        if self._cycle > 0:
+            self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)      
         #self.ser.open()
-        self.get_sensors()
+        #self.get_sensors()
         
         #self.connect()
         #self.ser.open()
@@ -104,13 +106,12 @@ class Roomba(object):
             logger.debug("Roomba: {0} will send cmd \'{1}\'".format(item, cmd_string))
             self._items.append(item)
             return self.update_item
-        elif 'roomba_get' in item.conf:
+        if 'roomba_get' in item.conf:
             sensor_string = item.conf['roomba_get']
-            logger.debug("Roomba: {0} will get {1}".format(item, sensor_string))
+            logger.debug("Roomba: {0} will get \'{1}\'".format(item, sensor_string))
             self._items.append(item)
-            if self._cycle > 0:
-                self._sh.scheduler.add('Roomba', self.get_sensors, prio=5, cycle=self._cycle, offset=2)
-        elif 'roomba_drive' in item.conf:
+            return self.update_item      
+        if 'roomba_drive' in item.conf:
             drive_string = item.conf['roomba_drive']
             logger.debug("Roomba: {0} will drive {1}".format(item, drive_string))
             self._items.append(item)
@@ -209,7 +210,6 @@ class Roomba(object):
             sensor_dict['motor_overcurrent_main_brush']=_motor_overcurrent[2]
             sensor_dict['motor_overcurrent_drive_right']=_motor_overcurrent[3]        
             sensor_dict['motor_overcurrent_drive_left']=_motor_overcurrent[3] 
-            sensor_dict['motor_overcurrent_motor_overcurrent']=_motor_overcurrent[0]
             
             _virtual_wall = answer[6]
             sensor_dict['virtual_wall']=_virtual_wall
@@ -231,10 +231,10 @@ class Roomba(object):
             
             _bumps_wheeldrops = self.BumpsWheeldrops(answer[0])
             sensor_dict['bumps_wheeldrops_bump_right']=_bumps_wheeldrops[0]
-            sensor_dict['bumps_wheeldrops_bump_left']=_bumps_wheeldrops[0]
-            sensor_dict['bumps_wheeldrops_wheeldrop_right']=_bumps_wheeldrops[0]
-            sensor_dict['bumps_wheeldrops_wheeldrop_left']=_bumps_wheeldrops[0]
-            sensor_dict['bumps_wheeldrops_wheeldrop_caster']=_bumps_wheeldrops[0]
+            sensor_dict['bumps_wheeldrops_bump_left']=_bumps_wheeldrops[1]
+            sensor_dict['bumps_wheeldrops_wheeldrop_right']=_bumps_wheeldrops[2]
+            sensor_dict['bumps_wheeldrops_wheeldrop_left']=_bumps_wheeldrops[3]
+            sensor_dict['bumps_wheeldrops_wheeldrop_caster']=_bumps_wheeldrops[4]
             
             for item in self._items:
                 if 'roomba_get' in item.conf:
@@ -242,6 +242,7 @@ class Roomba(object):
                     if sensor in sensor_dict:
                         value = sensor_dict[sensor]
                         item(value, 'Roomba', 'get_sensors')
+                        #print ("SENSOR: {0}  VALUE: {1}".format(sensor,value))
         else:
             logger.error("Roomba: Sensors not readable")
         self.disconnect()
