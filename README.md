@@ -13,6 +13,19 @@ plugin.conf
 
 
 item.conf:
+
+There are 3 attributes wich can be used with the Roomba-Plugin:
+
+roomba_cmd = xxx
+Here you can use one of the following commands (clean, dock, power_off, spot, max) and the Roomba will do it.
+
+roomba_get = xxx
+Use the following item.conf to see how to configure the item for your wanted sensor. I think the names are self explaining.
+
+roomba_drive = command | 2 | command
+Just typing this i think roomba_cmd is obsolete.
+With roomba_drive you can make a lsit of commands...
+
 <pre>[roomba]
     [[command]]
         [[[clean]]]
