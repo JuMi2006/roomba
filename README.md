@@ -16,15 +16,23 @@ item.conf:
 
 There are 3 attributes wich can be used with the Roomba-Plugin:
 
-roomba_cmd = xxx
+<code>roomba_cmd = xxx</code>
 Here you can use one of the following commands (clean, dock, power_off, spot, max) and the Roomba will do it.
+You can also define a "driving scene": <code>roomba_cmd = backward | 2 | stop | 2 | clean</code>
+Integers are sleep times in this moment. The above example drives 2 seconds backward, stops for 2 seconds and begins to clean.
+There are the following commands available:
+forward (100mm/s)
+backward (100mm/s)
+spin_left
+spin_right
+stop
 
-roomba_get = xxx
-Use the following item.conf to see how to configure the item for your wanted sensor. I think the names are self explaining.
+<code>roomba_get = xxx</code>
+Use the following item.conf to see how to configure the item for your wanted sensor. 
+I think the names are self explaining.
 
-roomba_drive = command | 2 | command
-Just typing this i think roomba_cmd is obsolete.
-With roomba_drive you can make a lsit of commands...
+<code>roomba_raw = [123]</code>
+To send integers to Roomba following the documentation of Roomba SCI as List!
 
 <pre>[roomba]
     [[command]]
@@ -54,7 +62,7 @@ With roomba_drive you can make a lsit of commands...
             #drives backward for 2 seconds, then spins left for 2 seconds, then drives forward for 3 seconds, then spins right for 3 seconds, then stops and starts to clean after 2 seconds
             name = test-drive
             type = bool
-            roomba_drive = backward | 2 | spin_left | 2 | forward | 3 | spin_right | 3 | stop | 2 | clean
+            roomba_cmd = backward | 2 | spin_left | 2 | forward | 3 | spin_right | 3 | stop | 2 | clean
             
     [[sensor]]
         [[[current]]]
@@ -88,7 +96,7 @@ With roomba_drive you can make a lsit of commands...
             type = num
             roomba_get = charging_state
         [[[angle]]]
-                    type = num
+            type = num
             roomba_get = angle
         [[[distance]]]
             type = num
@@ -160,3 +168,5 @@ With roomba_drive you can make a lsit of commands...
             type = bool
             roomba_cmd = bumps_wheeldrops_wheeldrop_caster
 </pre>
+
+Good doocumentation to Roombas SCI: http://www.robotiklubi.ee/_media/kursused/roomba_sumo/failid/hacking_roomba.pdf
