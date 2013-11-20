@@ -206,4 +206,41 @@ To send integers to Roomba following the documentation of Roomba SCI as List!
             roomba_cmd = bumps_wheeldrops_wheeldrop_caster
 </pre>
 
+Serial-Port:
+=
+There are several availabilitys to connect to Roomba Serial Port. This was tested with a bluetooth-modul wich creates a virtual serial port.
+This can be done in do-it-yourself your you can buy it i.e. "FT41 BlueRoom" from Fussel Elektronik.
+Not tested is a connection trough a wifi-rs232 adapter. 
+
+#Bluetooth:
+#install Bluetooth
+<pre>apt-get install bluez bluez-utils</pre>
+
+#scan for modules
+<code>hcitool scan</code>
+output:
+<pre>
+Scanning ...
+	00:13:04:11:14:77	bluetooth-adapter
+</pre>
+#pair module
+<code>bluez-simple-agent hci0 00:13:04:11:14:77</code>
+Enter your PIN (0000/1234 for default) in following output:
+<pre>>RequestPinCode (/org/bluez/1975/hci0/dev_A8_26_D9_F3_55_59)
+Enter PIN Code: 1234
+Release
+New device (/org/bluez/1975/hci0/dev_A8_26_D9_F3_55_59)
+</pree>
+#bind module to tty
+<code>nano /etc/bluetooth/rfcomm.conf</code>
+configure your rfcomm.conf:
+<pre>rfcomm1 {
+bind yes;
+device 00:13:04:11:14:77;
+channel 1;
+comment "Roomba";
+}
+</pre>
+
+Finally unplug and plug your bt-dongle an in /dev must be a /dev/rfcomm1 now.
 Good doocumentation to Roombas SCI: http://www.robotiklubi.ee/_media/kursused/roomba_sumo/failid/hacking_roomba.pdf
