@@ -62,61 +62,57 @@ To send integers to Roomba following the documentation of Roomba SCI as List!
             name = max
             type = bool
             roomba_cmd = max
-            
-    [[drive]]
-        [[[out]]]
+        [[[test_scene]]]
 			enforce_updates = true
             #drives backward for 2 seconds, then spins left for 2 seconds, then drives forward for 3 seconds, then spins right for 3 seconds, then stops and starts to clean after 2 seconds
             name = test-drive
             type = bool
             roomba_cmd = backward | 2 | spin_left | 2 | forward | 3 | spin_right | 3 | stop | 2 | clean
-            
+			
+	[[raw]]
+		[stop]
+			type = bool
+			enforce_updates = true
+			roomba_raw = 137 | 0 | 0 | 0
+		
     [[sensor]]
         [[[current]]]
+            #current in mA
 			enforce_updates = true
             type = num
             roomba_get = current
         [[[temperature]]]
+            #temperature in degrees celsius
 			enforce_updates = true
             type = num
             roomba_get = temperature
         [[[voltage]]]
+            #voltage in mV
 			enforce_updates = true
             type = num
             roomba_get = voltage
         [[[button_clean]]]
+            #clean button pressed
 			enforce_updates = true
             type = bool
             roomba_get = buttons_clean
         [[[capacity]]]
+            #capacity in mA
 			enforce_updates = true
             type = num
             roomba_get = capacity
         [[[charge]]]
+            #charge in mA
 			enforce_updates = true
             type = num
             roomba_get = charge
-        [[[temperature]]]
-			enforce_updates = true
-            type = num
-            roomba_get = temperature    
-        [[[current]]]
-			enforce_updates = true
-            type = num
-            roomba_get = current        
-        [[[voltage]]]
-			enforce_updates = true
-            type = num
-            roomba_get = voltage    
-        [[[charging_state]]]
-			enforce_updates = true
-            type = num
-            roomba_get = charging_state
         [[[angle]]]
+            #angle since last request
 			enforce_updates = true
             type = num
             roomba_get = angle
         [[[distance]]]
+            #distance since last request
 			enforce_updates = true
             type = num
             roomba_get = distance
@@ -177,7 +173,7 @@ To send integers to Roomba following the documentation of Roomba SCI as List!
             type = bool
             roomba_get = cliff_front_right
         [[[cliff_front_left]]]
-			enforce_updates = true
+     	enforce_updates = true
             type = bool
             roomba_get = cliff_front_left
         [[[cliff_left]]]
@@ -185,7 +181,7 @@ To send integers to Roomba following the documentation of Roomba SCI as List!
             type = bool
             roomba_get = cliff_left
         [[[wall]]]
-			enforce_updates = true
+            enforce_updates = true
             type = bool
             roomba_get = wall
         [[[bumps_wheeldrops_bump_right]]]
