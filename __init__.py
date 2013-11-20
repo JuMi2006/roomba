@@ -62,15 +62,15 @@ class Roomba(object):
         if self.is_connected == 'True':
             if type(raw) is list:
                 #print ("Send {0}".format(raw))
-                logger.debug("Roomba: Send:{0}".format(raw))
+                logger.debug("Roomba: Send List:{0}".format(raw))
                 try:
                     self.ser.write(bytearray(raw))
                 except:
-                    logger.error("Roomba: Send failed for {}!".format([raw]))
+                    logger.error("Roomba: Send failed for {}!".format(raw))
                     
             else:
                 #print ("Send [{0}]".format(raw))
-                logger.debug("Roomba: Send:{0}".format([raw]))
+                logger.debug("Roomba: Send Single:{0}".format([raw]))
                 try:
                     self.ser.write(bytearray([raw]))
                 except:
@@ -124,7 +124,6 @@ class Roomba(object):
        
     def drive(self,cmd_string):
         self.init_command()
-        full_raw_cmd = []
         if type(cmd_string) is list:
             for i in cmd_string:
                 try:
@@ -139,9 +138,16 @@ class Roomba(object):
             self.send(cmd_dict[cmd_string])
         self.disconnect()
         
-    def raw(self,raw_cmd):
+    def raw(self,raw_string):
         self.init_command()
-        self.send(self, raw)
+        full_raw_cmd = []
+        if type(raw_string) is list:
+            for i in raw_string:
+                i = int(i)
+                full_raw_cmd.append(i)
+            self.send(full_raw_cmd)
+        else:
+            self.send(int(raw_string))
         self.disconnect()
         
     def get_sensors(self):
