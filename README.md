@@ -226,7 +226,7 @@ Scanning ...
 #pair module
 <code>bluez-simple-agent hci0 00:13:04:11:14:77</code>
 Enter your PIN (0000/1234 for default) in following output:
-<pre>>RequestPinCode (/org/bluez/1975/hci0/dev_A8_26_D9_F3_55_59)
+<pre>RequestPinCode (/org/bluez/1975/hci0/dev_A8_26_D9_F3_55_59)
 Enter PIN Code: 1234
 Release
 New device (/org/bluez/1975/hci0/dev_A8_26_D9_F3_55_59)
