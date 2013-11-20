@@ -230,7 +230,7 @@ Enter your PIN (0000/1234 for default) in following output:
 Enter PIN Code: 1234
 Release
 New device (/org/bluez/1975/hci0/dev_A8_26_D9_F3_55_59)
-</pree>
+</pre>
 #bind module to tty
 <code>nano /etc/bluetooth/rfcomm.conf</code>
 configure your rfcomm.conf:
